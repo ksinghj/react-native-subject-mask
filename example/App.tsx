@@ -87,9 +87,15 @@ function Group(props: { name: string; children: React.ReactNode }) {
 }
 
 const styles = {
-  header: { fontSize: 30, margin: 20 },
-  groupHeader: { fontSize: 20, marginBottom: 20 },
-  group: { margin: 20, backgroundColor: '#fff', borderRadius: 10, padding: 20 },
+  header: { fontSize: 30, marginLeft: 30 },
+  groupHeader: { fontSize: 20, marginBottom: 2 },
+  group: {
+    marginHorizontal: 20,
+    marginVertical: 12,
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    padding: 20,
+  },
   container: { flex: 1, backgroundColor: '#eee' },
   buttonRow: {
     flexDirection: 'row' as const,
