@@ -1,18 +1,21 @@
+import { ScrollView, Text, View } from 'react-native';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import * as SubjectMask from 'react-native-subject-mask';
-import { SafeAreaView, ScrollView, Text, View } from 'react-native';
 
 export default function App() {
   const supported = SubjectMask.isSupported();
 
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView style={styles.container}>
-        <Text style={styles.header}>react-native-subject-mask</Text>
-        <Group name="isSupported()">
-          <Text>{supported ? 'true — subject lifting available' : 'false — needs iOS 17+'}</Text>
-        </Group>
-      </ScrollView>
-    </SafeAreaView>
+    <SafeAreaProvider>
+      <SafeAreaView style={styles.container}>
+        <ScrollView style={styles.container}>
+          <Text style={styles.header}>react-native-subject-mask</Text>
+          <Group name="isSupported()">
+            <Text>{supported ? 'true — subject lifting available' : 'false — needs iOS 17+'}</Text>
+          </Group>
+        </ScrollView>
+      </SafeAreaView>
+    </SafeAreaProvider>
   );
 }
 
