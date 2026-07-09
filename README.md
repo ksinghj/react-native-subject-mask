@@ -144,12 +144,13 @@ contour tracing failed — dimming still works.
 Output files land in the temporary directory — **copy them if you need
 persistence**.
 
-## Why data-only?
+## Design: native extracts, JS animates
 
 Vision's mask/contour APIs are the only part that *requires* native code —
-everything downstream is paths and compositing, which JS already does well via
-Skia. Keeping animation in JS keeps the native surface small and stable while
-the "does this look good" iteration happens where iteration is fast.
+everything downstream is paths and compositing, which Skia already does well
+in JS. So the native module returns data, and even the bundled `/skia`
+components are plain JS on top of the public API — fork them, restyle them,
+or ignore them without touching native code.
 
 The similarly named
 [react-native-subject-lift](https://github.com/baygut/react-native-subject-lift)
