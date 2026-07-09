@@ -4,7 +4,6 @@ Apple Vision subject lifting for React Native / Expo — the Photos-style
 "lift subject from background" effect, as **animation-ready data** plus
 optional drop-in Skia components.
 
-<!-- TODO: demo GIF — record the example app (Add demo photo → reveal) -->
 <p align="center">
   <img src="./docs/demo.gif" alt="Subject reveal demo: outline traced with a glow, then the background dims around the subject" width="320" />
 </p>
