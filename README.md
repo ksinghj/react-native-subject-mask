@@ -12,8 +12,8 @@ Apple Vision subject lifting for React Native / Expo. Give it a photo, get back
 All animation (shimmer, glow, dim crossfade, ghost overlays) stays in JS with
 Skia + Reanimated, where it's fast to iterate. Native code only extracts data.
 
-> **Status: early development.** The API below is the target contract; the
-> Vision pipeline is being ported now.
+> **Status: early development.** The native pipeline works on iOS; not yet
+> published to npm.
 
 ## Platform support
 
@@ -34,7 +34,7 @@ if (isSupported()) {
 }
 ```
 
-## API (target contract)
+## API
 
 ```ts
 type SubjectLiftOptions = {

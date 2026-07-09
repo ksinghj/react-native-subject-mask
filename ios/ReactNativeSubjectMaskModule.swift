@@ -1,5 +1,10 @@
 import ExpoModulesCore
 
+internal struct SubjectLiftOptions: Record {
+  /// Cap the dim mask's longest side, in pixels. 0 disables downscaling.
+  @Field var maxMaskDimension: Double = 2048
+}
+
 public class ReactNativeSubjectMaskModule: Module {
   public func definition() -> ModuleDefinition {
     Name("ReactNativeSubjectMask")
@@ -10,6 +15,27 @@ public class ReactNativeSubjectMaskModule: Module {
         return true
       }
       return false
+    }
+
+    // AsyncFunction bodies run on the module's background dispatch queue,
+    // keeping Vision/CoreImage work off the main thread.
+    AsyncFunction("isolateSubject") { (imageUri: URL, options: SubjectLiftOptions?) -> [String: Any?] in
+      guard #available(iOS 17.0, *) else {
+        throw UnsupportedException()
+      }
+
+      let output = try SubjectMasking.isolateSubject(
+        imageUrl: imageUri,
+        maxMaskDimension: CGFloat(options?.maxMaskDimension ?? 2048)
+      )
+
+      return [
+        "imageUri": output.imageUri,
+        "dimMaskUri": output.dimMaskUri,
+        "outlineSvg": output.outlineSvg,
+        "imageWidth": output.imageWidth,
+        "imageHeight": output.imageHeight,
+      ]
     }
   }
 }
