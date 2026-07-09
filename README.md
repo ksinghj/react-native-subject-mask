@@ -83,6 +83,7 @@ dim back out. Everything is a prop:
 | `glowRadius` | `12` | Glow blur radius; `0` disables |
 | `dimColor` | `'black'` | Scrim color |
 | `dimOpacity` | `0.55` | Background darkness at full dim |
+| `revealDelayMs` | `0` | Delay before the reveal starts |
 | `traceDurationMs` | `600` | Outline trace |
 | `glowPulseDurationMs` | `350` | One pulse leg |
 | `glowPulseCount` | `2` | Pulse legs (2 = one full pulse); `0` skips |

@@ -42,6 +42,8 @@ export type SubjectRevealImageProps = {
   dimColor?: string;
   /** How dark the background gets at full dim, 0–1. Default 0.55. */
   dimOpacity?: number;
+  /** Delay before the reveal starts once `dimmed` flips to true, ms. Default 0. */
+  revealDelayMs?: number;
   /** Outline trace duration, ms. Default 600. */
   traceDurationMs?: number;
   /** One glow pulse leg, ms (a pulse is up+down). Default 350. */
@@ -73,6 +75,7 @@ export function SubjectRevealImage({
   glowRadius = 12,
   dimColor = 'black',
   dimOpacity = 0.55,
+  revealDelayMs = 0,
   traceDurationMs = 600,
   glowPulseDurationMs = 350,
   glowPulseCount = 2,
@@ -107,12 +110,15 @@ export function SubjectRevealImage({
       outlineGlow.set(0);
       outlineOpacity.set(1);
       outlineTrim.set(
-        withTiming(1, { duration: traceDurationMs, easing: Easing.inOut(Easing.ease) })
+        withDelay(
+          revealDelayMs,
+          withTiming(1, { duration: traceDurationMs, easing: Easing.inOut(Easing.ease) })
+        )
       );
       if (glowPulseCount > 0) {
         outlineGlow.set(
           withDelay(
-            traceDurationMs,
+            revealDelayMs + traceDurationMs,
             withRepeat(
               withTiming(1, { duration: glowPulseDurationMs, easing: Easing.inOut(Easing.ease) }),
               glowPulseCount,
@@ -121,7 +127,7 @@ export function SubjectRevealImage({
           )
         );
       }
-      const dimStart = traceDurationMs + glowPulseDurationMs * glowPulseCount;
+      const dimStart = revealDelayMs + traceDurationMs + glowPulseDurationMs * glowPulseCount;
       dim.set(
         withDelay(
           dimStart,
@@ -137,6 +143,7 @@ export function SubjectRevealImage({
     }
   }, [
     dimmed,
+    revealDelayMs,
     traceDurationMs,
     glowPulseDurationMs,
     glowPulseCount,
