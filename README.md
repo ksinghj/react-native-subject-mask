@@ -5,7 +5,7 @@ Apple Vision subject lifting for React Native / Expo — the Photos-style
 optional drop-in Skia components.
 
 <p align="center">
-  <img src="./docs/demo.gif" alt="Subject reveal demo: outline traced with a glow, then the background dims around the subject" width="320" />
+  <img src="https://raw.githubusercontent.com/ksinghj/react-native-subject-mask/main/docs/demo.gif" alt="Subject reveal demo: outline traced with a glow, then the background dims around the subject" width="320" />
 </p>
 
 ```tsx
