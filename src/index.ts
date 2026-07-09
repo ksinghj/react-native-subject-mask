@@ -2,6 +2,10 @@ import { SubjectLiftOptions, SubjectLiftResult } from './ReactNativeSubjectMask.
 import ReactNativeSubjectMaskModule from './ReactNativeSubjectMaskModule';
 
 export * from './ReactNativeSubjectMask.types';
+export { aspectFitRect } from './aspectFit';
+export type { Rect } from './aspectFit';
+export { useSubjectLift } from './useSubjectLift';
+export type { SubjectLiftError, UseSubjectLiftState } from './useSubjectLift';
 
 /**
  * Whether subject lifting is available on this device.

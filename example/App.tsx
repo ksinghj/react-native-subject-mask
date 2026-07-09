@@ -3,40 +3,22 @@ import { useState } from 'react';
 import { ActivityIndicator, Button, ScrollView, Text, View } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import * as SubjectMask from 'react-native-subject-mask';
-
-import { SubjectRevealImage } from './SubjectRevealImage';
+import { SubjectRevealImage } from 'react-native-subject-mask/skia';
 
 export default function App() {
   const supported = SubjectMask.isSupported();
-  const [busy, setBusy] = useState(false);
-  const [elapsedMs, setElapsedMs] = useState<number | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [result, setResult] = useState<SubjectMask.SubjectLiftResult | null>(null);
-  const [dimmed, setDimmed] = useState(false);
+  const [pickedUri, setPickedUri] = useState<string | null>(null);
+  const [dimmed, setDimmed] = useState(true);
+  const { result, error, loading, durationMs } = SubjectMask.useSubjectLift(pickedUri);
 
-  async function pickAndIsolate() {
+  async function pickPhoto() {
     const picked = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ['images'],
       quality: 1,
     });
     if (picked.canceled) return;
-
-    setBusy(true);
-    setError(null);
-    setResult(null);
-    setDimmed(false);
-    const startedAt = Date.now();
-    try {
-      const isolated = await SubjectMask.isolateSubject(picked.assets[0].uri);
-      setElapsedMs(Date.now() - startedAt);
-      setResult(isolated);
-      setDimmed(true); // kick off the reveal as soon as the data lands
-    } catch (e) {
-      const err = e as Error & { code?: string };
-      setError(`${err.code ?? 'ERR_UNKNOWN'}: ${err.message}`);
-    } finally {
-      setBusy(false);
-    }
+    setDimmed(true); // reveal plays as soon as the data lands
+    setPickedUri(picked.assets[0].uri);
   }
 
   return (
@@ -47,14 +29,18 @@ export default function App() {
           <Group name="isSupported()">
             <Text>{supported ? 'true — subject lifting available' : 'false — needs iOS 17+'}</Text>
           </Group>
-          <Group name="isolateSubject()">
-            <Button title="Pick a photo" onPress={pickAndIsolate} disabled={!supported || busy} />
-            {busy && <ActivityIndicator style={styles.spacer} />}
-            {error && <Text style={styles.error}>{error}</Text>}
+          <Group name="useSubjectLift() + <SubjectRevealImage />">
+            <Button title="Pick a photo" onPress={pickPhoto} disabled={!supported || loading} />
+            {loading && <ActivityIndicator style={styles.spacer} />}
+            {error && (
+              <Text style={styles.error}>
+                {error.code ?? 'ERR_UNKNOWN'}: {error.message}
+              </Text>
+            )}
             {result && (
               <View>
                 <Text style={styles.spacer}>
-                  {result.imageWidth}×{result.imageHeight} in {elapsedMs}ms — outline{' '}
+                  {result.imageWidth}×{result.imageHeight} in {durationMs}ms — outline{' '}
                   {result.outlineSvg ? `${result.outlineSvg.length} chars` : 'null'}
                 </Text>
                 <SubjectRevealImage

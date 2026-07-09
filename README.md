@@ -34,6 +34,42 @@ if (isSupported()) {
 }
 ```
 
+## Drop-in components (`react-native-subject-mask/skia`)
+
+If you use [`@shopify/react-native-skia`](https://shopify.github.io/react-native-skia/)
+and [`react-native-reanimated`](https://docs.swmansion.com/react-native-reanimated/)
+(optional peer deps — the core module works without them), the reveal
+animation ships ready-made:
+
+```tsx
+import { useSubjectLift } from 'react-native-subject-mask';
+import { SubjectRevealImage } from 'react-native-subject-mask/skia';
+
+function ProgressPhoto({ uri }: { uri: string }) {
+  const { result, loading, error } = useSubjectLift(uri);
+  if (!result) return null;
+  return (
+    <SubjectRevealImage
+      result={result}
+      dimmed
+      style={{ aspectRatio: result.imageWidth / result.imageHeight }}
+    />
+  );
+}
+```
+
+`<SubjectRevealImage>` plays the Photos-style reveal — outline traced with a
+glow, then the background dims around the subject — and everything is a prop:
+`outlineColor`, `outlineWidth`, `glowColor`, `glowRadius`, `dimColor`,
+`dimOpacity`, and per-phase timings (`traceDurationMs`, `glowPulseDurationMs`,
+`glowPulseCount`, `dimInDurationMs`, `outlineFadeDurationMs`,
+`dimOutDurationMs`). Flip `dimmed` to false to fade the dim back out.
+
+For custom choreography, compose the primitives inside your own Skia
+`<Canvas>`: `<SubjectOutline>` (trim/glow-animatable stroked path),
+`<DimOverlay>` (alpha-masked scrim), and `makeFittedOutlinePath` +
+`aspectFitRect` for the layout math.
+
 ## API
 
 ```ts
@@ -56,6 +92,13 @@ type SubjectLiftResult = {
 
 function isolateSubject(imageUri: string, options?: SubjectLiftOptions): Promise<SubjectLiftResult>;
 function isSupported(): boolean;
+
+// React sugar: runs isolateSubject when imageUri changes, discards stale results
+function useSubjectLift(imageUri: string | null, options?: SubjectLiftOptions):
+  { result: SubjectLiftResult | null; error: Error | null; loading: boolean; durationMs: number | null };
+
+// Letterbox math for positioning overlays against a scaledToFit image
+function aspectFitRect(imageAspectRatio: number, container: { width: number; height: number }): Rect;
 ```
 
 Errors are typed, not half-null results — `isolateSubject` rejects with

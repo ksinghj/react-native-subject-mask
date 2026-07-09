@@ -3,8 +3,8 @@ export type Rect = { x: number; y: number; width: number; height: number };
 /**
  * Where a `scaledToFit` image actually lands inside a container — i.e. the
  * letterboxed rect sharing the container's centre. The subject mask/outline
- * are in image space, so everything drawn over the photo positions against
- * this rect, not the container.
+ * are in image space (normalized 0...1), so everything drawn over the photo
+ * positions against this rect, not the container.
  */
 export const aspectFitRect = (
   imageAspectRatio: number,
