@@ -1,15 +1,19 @@
+require 'json'
+
+package = JSON.parse(File.read(File.join(__dir__, '..', 'package.json')))
+
 Pod::Spec.new do |s|
   s.name           = 'ReactNativeSubjectMask'
-  s.version        = '1.0.0'
-  s.summary        = 'A sample project summary'
-  s.description    = 'A sample project description'
-  s.author         = ''
-  s.homepage       = 'https://docs.expo.dev/modules/'
+  s.version        = package['version']
+  s.summary        = 'Apple Vision subject lifting for React Native/Expo'
+  s.description    = package['description']
+  s.author         = package['author']
+  s.homepage       = package['homepage']
+  s.license        = package['license']
   s.platforms      = {
-    :ios => '16.4',
-    :tvos => '16.4'
+    :ios => '16.4'
   }
-  s.source         = { git: '' }
+  s.source         = { git: 'https://github.com/ksinghj/react-native-subject-mask.git', tag: s.version.to_s }
   s.static_framework = true
 
   s.dependency 'ExpoModulesCore'

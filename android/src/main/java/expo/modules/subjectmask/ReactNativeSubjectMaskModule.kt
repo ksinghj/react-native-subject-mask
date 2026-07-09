@@ -6,5 +6,9 @@ import expo.modules.kotlin.modules.ModuleDefinition
 class ReactNativeSubjectMaskModule : Module() {
   override fun definition() = ModuleDefinition {
     Name("ReactNativeSubjectMask")
+
+    // Subject lifting is iOS-only in v1 (ML Kit Subject Segmentation is a
+    // possible v2). Android compiles but reports unsupported.
+    Function("isSupported") { false }
   }
 }

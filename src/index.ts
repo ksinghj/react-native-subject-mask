@@ -1,4 +1,13 @@
-// Reexport the native module. On web, it will be resolved to ReactNativeSubjectMaskModule.web.ts
-// and on native platforms to ReactNativeSubjectMaskModule.ts
-export { default } from './ReactNativeSubjectMaskModule';
+import ReactNativeSubjectMaskModule from './ReactNativeSubjectMaskModule';
+
 export * from './ReactNativeSubjectMask.types';
+
+/**
+ * Whether subject lifting is available on this device.
+ * `true` only on iOS 17+; always `false` on Android (v1) and web.
+ */
+export function isSupported(): boolean {
+  return ReactNativeSubjectMaskModule.isSupported();
+}
+
+export default ReactNativeSubjectMaskModule;
