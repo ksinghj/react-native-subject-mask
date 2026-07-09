@@ -8,7 +8,8 @@
     "userInterfaceStyle": "light",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "expo.modules.subjectmask.example"
+      "bundleIdentifier": "expo.modules.subjectmask.example",
+      "appleTeamId": "PL687RR752"
     },
     "android": {
       "adaptiveIcon": {
