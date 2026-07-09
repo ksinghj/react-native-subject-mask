@@ -47,6 +47,7 @@ export default function App() {
                   result={result}
                   dimmed={dimmed}
                   style={[styles.preview, { aspectRatio: result.imageWidth / result.imageHeight }]}
+                  outlineColor="red"
                 />
                 <Button
                   title={dimmed ? 'Undim' : 'Replay reveal'}

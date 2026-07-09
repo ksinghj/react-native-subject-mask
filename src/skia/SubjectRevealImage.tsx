@@ -103,37 +103,37 @@ export function SubjectRevealImage({
 
   useEffect(() => {
     if (dimmed) {
-      outlineTrim.value = 0;
-      outlineGlow.value = 0;
-      outlineOpacity.value = 1;
-      outlineTrim.value = withTiming(1, {
-        duration: traceDurationMs,
-        easing: Easing.inOut(Easing.ease),
-      });
+      outlineTrim.set(0);
+      outlineGlow.set(0);
+      outlineOpacity.set(1);
+      outlineTrim.set(
+        withTiming(1, { duration: traceDurationMs, easing: Easing.inOut(Easing.ease) })
+      );
       if (glowPulseCount > 0) {
-        outlineGlow.value = withDelay(
-          traceDurationMs,
-          withRepeat(
-            withTiming(1, { duration: glowPulseDurationMs, easing: Easing.inOut(Easing.ease) }),
-            glowPulseCount,
-            true
+        outlineGlow.set(
+          withDelay(
+            traceDurationMs,
+            withRepeat(
+              withTiming(1, { duration: glowPulseDurationMs, easing: Easing.inOut(Easing.ease) }),
+              glowPulseCount,
+              true
+            )
           )
         );
       }
       const dimStart = traceDurationMs + glowPulseDurationMs * glowPulseCount;
-      dim.value = withDelay(
-        dimStart,
-        withTiming(1, { duration: dimInDurationMs, easing: Easing.out(Easing.ease) })
+      dim.set(
+        withDelay(
+          dimStart,
+          withTiming(1, { duration: dimInDurationMs, easing: Easing.out(Easing.ease) })
+        )
       );
-      outlineOpacity.value = withDelay(
-        dimStart,
-        withTiming(0, { duration: outlineFadeDurationMs })
-      );
+      outlineOpacity.set(withDelay(dimStart, withTiming(0, { duration: outlineFadeDurationMs })));
     } else {
-      dim.value = withTiming(0, { duration: dimOutDurationMs, easing: Easing.inOut(Easing.ease) });
-      outlineTrim.value = 0;
-      outlineGlow.value = 0;
-      outlineOpacity.value = 1;
+      dim.set(withTiming(0, { duration: dimOutDurationMs, easing: Easing.inOut(Easing.ease) }));
+      outlineTrim.set(0);
+      outlineGlow.set(0);
+      outlineOpacity.set(1);
     }
   }, [
     dimmed,
@@ -149,7 +149,7 @@ export function SubjectRevealImage({
     outlineOpacity,
   ]);
 
-  const scrimOpacity = useDerivedValue(() => dim.value * dimOpacity);
+  const scrimOpacity = useDerivedValue(() => dim.get() * dimOpacity);
 
   return (
     <View style={[styles.container, style]} onLayout={onLayout}>

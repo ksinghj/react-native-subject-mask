@@ -19,8 +19,7 @@ export function makeFittedOutlinePath(outlineSvg: string, fitRect: Rect): SkPath
   const matrix = Skia.Matrix();
   matrix.translate(fitRect.x, fitRect.y);
   matrix.scale(fitRect.width, fitRect.height);
-  path.transform(matrix);
-  return path;
+  return Skia.PathBuilder.MakeFromPath(path).transform(matrix).build();
 }
 
 export type SubjectOutlineProps = {
