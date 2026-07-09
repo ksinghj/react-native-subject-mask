@@ -1,3 +1,4 @@
+import { Asset } from 'expo-asset';
 import * as ImagePicker from 'expo-image-picker';
 import { useState } from 'react';
 import { ActivityIndicator, Button, ScrollView, Text, View } from 'react-native';
@@ -21,6 +22,13 @@ export default function App() {
     setPickedUri(picked.assets[0].uri);
   }
 
+  async function useDemoPhoto() {
+    const [asset] = await Asset.loadAsync(require('./assets/demo.jpg'));
+    if (!asset.localUri) return;
+    setDimmed(true);
+    setPickedUri(asset.localUri);
+  }
+
   return (
     <SafeAreaProvider>
       <SafeAreaView style={styles.container}>
@@ -30,7 +38,14 @@ export default function App() {
             <Text>{supported ? 'true — subject lifting available' : 'false — needs iOS 17+'}</Text>
           </Group>
           <Group name="useSubjectLift() + <SubjectRevealImage />">
-            <Button title="Pick a photo" onPress={pickPhoto} disabled={!supported || loading} />
+            <View style={styles.buttonRow}>
+              <Button title="Pick a photo" onPress={pickPhoto} disabled={!supported || loading} />
+              <Button
+                title="Add demo photo"
+                onPress={useDemoPhoto}
+                disabled={!supported || loading}
+              />
+            </View>
             {loading && <ActivityIndicator style={styles.spacer} />}
             {error && (
               <Text style={styles.error}>
@@ -47,7 +62,7 @@ export default function App() {
                   result={result}
                   dimmed={dimmed}
                   style={[styles.preview, { aspectRatio: result.imageWidth / result.imageHeight }]}
-                  outlineColor="red"
+                  outlineColor="white"
                 />
                 <Button
                   title={dimmed ? 'Undim' : 'Replay reveal'}
@@ -76,6 +91,11 @@ const styles = {
   groupHeader: { fontSize: 20, marginBottom: 20 },
   group: { margin: 20, backgroundColor: '#fff', borderRadius: 10, padding: 20 },
   container: { flex: 1, backgroundColor: '#eee' },
+  buttonRow: {
+    flexDirection: 'row' as const,
+    justifyContent: 'center' as const,
+    gap: 8,
+  },
   spacer: { marginTop: 12 },
   error: { marginTop: 12, color: '#c00' },
   preview: { marginTop: 12, marginBottom: 12, width: '100%' as const },

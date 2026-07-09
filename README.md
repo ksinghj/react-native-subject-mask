@@ -1,52 +1,20 @@
 # react-native-subject-mask
 
-Apple Vision subject lifting for React Native / Expo. Give it a photo, get back
-**animation-ready data** — not a baked-in effect:
+Apple Vision subject lifting for React Native / Expo — the Photos-style
+"lift subject from background" effect, as **animation-ready data** plus
+optional drop-in Skia components.
 
-- **`imageUri`** — an orientation-normalized copy of the image (file:// JPEG)
-- **`dimMaskUri`** — a PNG mask with a real alpha channel (alpha 1 = background,
-  alpha 0 = subject), ready to mask a dark scrim so the subject stays lit
-- **`outlineSvg`** — the subject's outline as an SVG path string, normalized to
-  0..1 with a top-left origin, ready for `Skia.Path.MakeFromSVGString`
-
-All animation (shimmer, glow, dim crossfade, ghost overlays) stays in JS with
-Skia + Reanimated, where it's fast to iterate. Native code only extracts data.
-
-> **Status: early development.** The native pipeline works on iOS; not yet
-> published to npm.
-
-## Platform support
-
-| Platform | Support |
-| --- | --- |
-| iOS 17+ | ✅ (`VNGenerateForegroundInstanceMaskRequest` + `VNDetectContoursRequest`) |
-| iOS < 17 | Compiles; `isSupported()` returns `false` |
-| Android | Compiles; `isSupported()` returns `false` (ML Kit Subject Segmentation is a v2 goal) |
-| Web | `isSupported()` returns `false` |
-
-Gate the feature at runtime:
-
-```ts
-import { isSupported } from 'react-native-subject-mask';
-
-if (isSupported()) {
-  // subject lifting available
-}
-```
-
-## Drop-in components (`react-native-subject-mask/skia`)
-
-If you use [`@shopify/react-native-skia`](https://shopify.github.io/react-native-skia/)
-and [`react-native-reanimated`](https://docs.swmansion.com/react-native-reanimated/)
-(optional peer deps — the core module works without them), the reveal
-animation ships ready-made:
+<!-- TODO: demo GIF — record the example app (Add demo photo → reveal) -->
+<p align="center">
+  <img src="./docs/demo.gif" alt="Subject reveal demo: outline traced with a glow, then the background dims around the subject" width="320" />
+</p>
 
 ```tsx
 import { useSubjectLift } from 'react-native-subject-mask';
 import { SubjectRevealImage } from 'react-native-subject-mask/skia';
 
-function ProgressPhoto({ uri }: { uri: string }) {
-  const { result, loading, error } = useSubjectLift(uri);
+function LiftedPhoto({ uri }: { uri: string }) {
+  const { result } = useSubjectLift(uri);
   if (!result) return null;
   return (
     <SubjectRevealImage
@@ -58,25 +26,89 @@ function ProgressPhoto({ uri }: { uri: string }) {
 }
 ```
 
-`<SubjectRevealImage>` plays the Photos-style reveal — outline traced with a
-glow, then the background dims around the subject — and everything is a prop:
-`outlineColor`, `outlineWidth`, `glowColor`, `glowRadius`, `dimColor`,
-`dimOpacity`, and per-phase timings (`traceDurationMs`, `glowPulseDurationMs`,
-`glowPulseCount`, `dimInDurationMs`, `outlineFadeDurationMs`,
-`dimOutDurationMs`). Flip `dimmed` to false to fade the dim back out.
+## What it does
 
-For custom choreography, compose the primitives inside your own Skia
-`<Canvas>`: `<SubjectOutline>` (trim/glow-animatable stroked path),
-`<DimOverlay>` (alpha-masked scrim), and `makeFittedOutlinePath` +
-`aspectFitRect` for the layout math.
+`isolateSubject(imageUri)` runs Apple Vision's subject-lift pipeline
+(`VNGenerateForegroundInstanceMaskRequest` + `VNDetectContoursRequest`) and
+returns data, not a baked-in effect:
 
-## API
+- **`imageUri`** — an orientation-normalized copy of the photo (file:// JPEG)
+- **`dimMaskUri`** — a PNG whose *alpha channel* is 1 over the background and
+  0 over the subject, ready to mask a dark scrim so the subject stays lit
+- **`outlineSvg`** — the subject's outline as an SVG path string, normalized
+  to 0...1 with a top-left origin, ready for `Skia.Path.MakeFromSVGString`
+  (multiple subpaths preserved — islands and holes survive)
+
+All animation stays in JS, where it's fast to iterate — and the data opens up
+more than dimming: e.g. render a previous photo's outline over a live camera
+preview as a ghost overlay for consistent posing.
+
+## Installation
+
+```sh
+npx expo install react-native-subject-mask
+```
+
+**Bare React Native**: install
+[`expo-modules-core`](https://docs.expo.dev/bare/installing-expo-modules/)
+first, then `npm install react-native-subject-mask && npx pod-install`.
+
+The core module has **zero dependencies**. The `/skia` components additionally
+need `@shopify/react-native-skia` (≥2) and `react-native-reanimated` (≥3.6),
+declared as optional peers — skip them if you're building your own visuals.
+
+## Platform support
+
+| Platform | Support |
+| --- | --- |
+| iOS 17+ | ✅ |
+| iOS < 17 | Compiles; `isSupported()` returns `false` |
+| Android | Compiles; `isSupported()` returns `false` (ML Kit Subject Segmentation is a v2 goal) |
+| Web | `isSupported()` returns `false` |
+
+Gate the feature at runtime with `isSupported()`.
+
+## Drop-in components (`react-native-subject-mask/skia`)
+
+### `<SubjectRevealImage result dimmed />`
+
+Plays the Photos-style reveal: outline traced with a glow, glow pulses, then
+the background dims around the subject. Flip `dimmed` to `false` to fade the
+dim back out. Everything is a prop:
+
+| Prop | Default | |
+| --- | --- | --- |
+| `outlineColor` | `'white'` | Outline stroke color |
+| `outlineWidth` | `3` | Stroke width, px |
+| `glowColor` | = `outlineColor` | Glow color |
+| `glowRadius` | `12` | Glow blur radius; `0` disables |
+| `dimColor` | `'black'` | Scrim color |
+| `dimOpacity` | `0.55` | Background darkness at full dim |
+| `traceDurationMs` | `600` | Outline trace |
+| `glowPulseDurationMs` | `350` | One pulse leg |
+| `glowPulseCount` | `2` | Pulse legs (2 = one full pulse); `0` skips |
+| `dimInDurationMs` | `400` | Dim fade-in |
+| `outlineFadeDurationMs` | `350` | Outline fade-out (runs with dim-in) |
+| `dimOutDurationMs` | `350` | Dim fade-out on `dimmed={false}` |
+
+### Primitives
+
+For custom choreography, compose inside your own Skia `<Canvas>`:
+
+- `<SubjectOutline path trim glowOpacity ... />` — the stroked outline with a
+  glow underlay; `trim`, `opacity`, and `glowOpacity` accept Reanimated shared
+  values
+- `<DimOverlay mask fitRect opacity ... />` — the alpha-masked scrim
+- `makeFittedOutlinePath(outlineSvg, fitRect)` — scales the normalized path
+  into pixel space (keeping stroke widths sane)
+
+## Data API
 
 ```ts
 type SubjectLiftOptions = {
-  /** Cap the dim mask's longest side, in pixels. Default 2048; 0 disables. */
+  /** Cap the dim mask's longest side, px. Default 2048; 0 disables. */
   maxMaskDimension?: number;
-  /** Cap the output image's longest side, in pixels. Default 0 = source resolution. */
+  /** Cap the output image's longest side, px. Default 0 = source resolution. */
   maxImageDimension?: number;
   /** JPEG quality of the output image, 0–1. Default 0.9. */
   imageQuality?: number;
@@ -101,53 +133,40 @@ function useSubjectLift(imageUri: string | null, options?: SubjectLiftOptions):
 function aspectFitRect(imageAspectRatio: number, container: { width: number; height: number }): Rect;
 ```
 
-Errors are typed, not half-null results — `isolateSubject` rejects with
-`error.code` of `ERR_UNSUPPORTED`, `ERR_IMAGE_LOAD`, or `ERR_NO_SUBJECT`.
+Vision always analyzes the full-resolution image; the option caps only affect
+what's written out, and the normalized mask/outline stay aligned at any size.
+
+**Errors are typed**, not half-null results — `isolateSubject` rejects with
+`error.code` of `ERR_UNSUPPORTED` (Android, iOS < 17), `ERR_IMAGE_LOAD`, or
+`ERR_NO_SUBJECT` (show your "make sure you're clearly in frame" UI).
 `outlineSvg` is `null` only in the narrow case where masking succeeded but
-contour tracing failed (dimming still works).
+contour tracing failed — dimming still works.
 
-Output files are written to the temporary/caches directory — copy them if you
-need persistence.
-
-## Installation
-
-### Expo projects
-
-```sh
-npx expo install react-native-subject-mask
-```
-
-### Bare React Native projects
-
-Install [`expo-modules-core`](https://docs.expo.dev/bare/installing-expo-modules/)
-first, then:
-
-```sh
-npm install react-native-subject-mask
-npx pod-install
-```
+Output files land in the temporary directory — **copy them if you need
+persistence**.
 
 ## Why data-only?
 
 Vision's mask/contour APIs are the only part that *requires* native code —
 everything downstream is paths and compositing, which JS already does well via
 Skia. Keeping animation in JS keeps the native surface small and stable while
-the "does this look good" iteration happens where iteration is fast. It also
-enables uses beyond dim-the-background, like rendering a previous photo's
-outline over a live camera preview for consistent posing.
+the "does this look good" iteration happens where iteration is fast.
 
 The similarly named
 [react-native-subject-lift](https://github.com/baygut/react-native-subject-lift)
-returns a subject *cutout*; this module instead returns the dim mask + vector
-outline for building animations.
+returns a subject *cutout*; this module returns the dim mask + vector outline
+for building animations.
 
-## Development
+## Example app
 
 ```sh
 npm install
-npm run build     # compile TypeScript
+npm run build
 cd example && npx expo run:ios
 ```
+
+"Add demo photo" runs the pipeline on a bundled photo; "Pick a photo" uses
+your library.
 
 ## License
 
