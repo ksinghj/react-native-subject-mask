@@ -2,8 +2,17 @@ export type SubjectLiftOptions = {
   /**
    * Downscale the dim mask so huge photos don't produce huge PNGs.
    * The mask's longest side is capped at this many pixels. Default: 2048.
+   * 0 disables the cap.
    */
   maxMaskDimension?: number;
+  /**
+   * Cap the output image's longest side, in pixels, for cases where full
+   * resolution isn't needed (smaller file, faster decode). Default: 0 —
+   * keep the source resolution. Vision always analyzes at full resolution.
+   */
+  maxImageDimension?: number;
+  /** JPEG quality of the output image, 0–1. Default: 0.9. */
+  imageQuality?: number;
 };
 
 export type SubjectLiftResult = {

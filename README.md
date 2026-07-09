@@ -38,8 +38,12 @@ if (isSupported()) {
 
 ```ts
 type SubjectLiftOptions = {
-  /** Cap the dim mask's longest side, in pixels. Default ~2048. */
+  /** Cap the dim mask's longest side, in pixels. Default 2048; 0 disables. */
   maxMaskDimension?: number;
+  /** Cap the output image's longest side, in pixels. Default 0 = source resolution. */
+  maxImageDimension?: number;
+  /** JPEG quality of the output image, 0–1. Default 0.9. */
+  imageQuality?: number;
 };
 
 type SubjectLiftResult = {

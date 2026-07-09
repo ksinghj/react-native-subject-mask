@@ -1,8 +1,10 @@
 import * as ImagePicker from 'expo-image-picker';
 import { useState } from 'react';
-import { ActivityIndicator, Button, Image, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, Button, ScrollView, Text, View } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import * as SubjectMask from 'react-native-subject-mask';
+
+import { SubjectRevealImage } from './SubjectRevealImage';
 
 export default function App() {
   const supported = SubjectMask.isSupported();
@@ -10,6 +12,7 @@ export default function App() {
   const [elapsedMs, setElapsedMs] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<SubjectMask.SubjectLiftResult | null>(null);
+  const [dimmed, setDimmed] = useState(false);
 
   async function pickAndIsolate() {
     const picked = await ImagePicker.launchImageLibraryAsync({
@@ -21,11 +24,13 @@ export default function App() {
     setBusy(true);
     setError(null);
     setResult(null);
+    setDimmed(false);
     const startedAt = Date.now();
     try {
       const isolated = await SubjectMask.isolateSubject(picked.assets[0].uri);
       setElapsedMs(Date.now() - startedAt);
       setResult(isolated);
+      setDimmed(true); // kick off the reveal as soon as the data lands
     } catch (e) {
       const err = e as Error & { code?: string };
       setError(`${err.code ?? 'ERR_UNKNOWN'}: ${err.message}`);
@@ -52,16 +57,15 @@ export default function App() {
                   {result.imageWidth}×{result.imageHeight} in {elapsedMs}ms — outline{' '}
                   {result.outlineSvg ? `${result.outlineSvg.length} chars` : 'null'}
                 </Text>
-                <View
-                  style={[styles.preview, { aspectRatio: result.imageWidth / result.imageHeight }]}>
-                  <Image source={{ uri: result.imageUri }} style={styles.layer} />
-                  {/* The dim mask is transparent over the subject; tinting its
-                      opaque (background) pixels black previews the dim effect. */}
-                  <Image
-                    source={{ uri: result.dimMaskUri }}
-                    style={[styles.layer, styles.dimLayer]}
-                  />
-                </View>
+                <SubjectRevealImage
+                  result={result}
+                  dimmed={dimmed}
+                  style={[styles.preview, { aspectRatio: result.imageWidth / result.imageHeight }]}
+                />
+                <Button
+                  title={dimmed ? 'Undim' : 'Replay reveal'}
+                  onPress={() => setDimmed(!dimmed)}
+                />
               </View>
             )}
           </Group>
@@ -87,7 +91,5 @@ const styles = {
   container: { flex: 1, backgroundColor: '#eee' },
   spacer: { marginTop: 12 },
   error: { marginTop: 12, color: '#c00' },
-  preview: { marginTop: 12, width: '100%' as const },
-  layer: { position: 'absolute' as const, width: '100%' as const, height: '100%' as const },
-  dimLayer: { tintColor: 'black', opacity: 0.6 },
+  preview: { marginTop: 12, marginBottom: 12, width: '100%' as const },
 };

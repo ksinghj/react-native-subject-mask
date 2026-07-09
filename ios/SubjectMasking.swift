@@ -17,7 +17,12 @@ internal enum SubjectMasking {
 
   private static let ciContext = CIContext()
 
-  internal static func isolateSubject(imageUrl: URL, maxMaskDimension: CGFloat) throws -> Output {
+  internal static func isolateSubject(
+    imageUrl: URL,
+    maxMaskDimension: CGFloat,
+    maxImageDimension: CGFloat,
+    imageQuality: CGFloat
+  ) throws -> Output {
     guard let data = try? Data(contentsOf: imageUrl), let image = UIImage(data: data) else {
       throw ImageLoadException()
     }
@@ -53,7 +58,12 @@ internal enum SubjectMasking {
     let dimMaskCGImage = try makeDimMask(from: rawMaskCIImage, maxDimension: maxMaskDimension)
     let outlinePath = try? extractOutline(fromMask: rawMaskCGImage)
 
-    guard let jpegData = normalized.jpegData(compressionQuality: 0.9),
+    // Vision ran on the full-resolution image above; the cap only shrinks
+    // what gets written out. The mask/outline stay valid because they're
+    // normalized and the aspect ratio is preserved.
+    let outputImage = normalized.scaledDown(toLongestSide: maxImageDimension)
+    guard let outputCGImage = outputImage.cgImage,
+          let jpegData = outputImage.jpegData(compressionQuality: imageQuality),
           let pngData = UIImage(cgImage: dimMaskCGImage).pngData() else {
       throw MaskRenderException()
     }
@@ -62,8 +72,8 @@ internal enum SubjectMasking {
       imageUri: try writeToTemp(data: jpegData, fileExtension: "jpg"),
       dimMaskUri: try writeToTemp(data: pngData, fileExtension: "png"),
       outlineSvg: outlinePath?.svgPathString(),
-      imageWidth: cgImage.width,
-      imageHeight: cgImage.height
+      imageWidth: outputCGImage.width,
+      imageHeight: outputCGImage.height
     )
   }
 
@@ -145,6 +155,25 @@ private extension CGRect {
 }
 
 private extension UIImage {
+  /// Downscales so the longest side is at most `maxDimension` pixels,
+  /// preserving aspect ratio. 0 (or an already-smaller image) is a no-op.
+  func scaledDown(toLongestSide maxDimension: CGFloat) -> UIImage {
+    let pixelSize = CGSize(width: size.width * scale, height: size.height * scale)
+    let longestSide = max(pixelSize.width, pixelSize.height)
+    guard maxDimension > 0, longestSide > maxDimension else { return self }
+
+    let ratio = maxDimension / longestSide
+    let targetSize = CGSize(
+      width: (pixelSize.width * ratio).rounded(),
+      height: (pixelSize.height * ratio).rounded()
+    )
+    let format = UIGraphicsImageRendererFormat()
+    format.scale = 1
+    return UIGraphicsImageRenderer(size: targetSize, format: format).image { _ in
+      draw(in: CGRect(origin: .zero, size: targetSize))
+    }
+  }
+
   /// Redraws the image so `imageOrientation` is always `.up`, which is what
   /// Vision assumes when handed a bare `CGImage`.
   func normalizedOrientation() -> UIImage {

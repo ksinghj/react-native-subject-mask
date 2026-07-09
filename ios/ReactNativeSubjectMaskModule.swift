@@ -3,6 +3,11 @@ import ExpoModulesCore
 internal struct SubjectLiftOptions: Record {
   /// Cap the dim mask's longest side, in pixels. 0 disables downscaling.
   @Field var maxMaskDimension: Double = 2048
+  /// Cap the output image's longest side, in pixels. 0 (default) keeps the
+  /// source resolution. Vision always runs on the full-resolution image.
+  @Field var maxImageDimension: Double = 0
+  /// JPEG quality of the output image, 0...1.
+  @Field var imageQuality: Double = 0.9
 }
 
 public class ReactNativeSubjectMaskModule: Module {
@@ -24,9 +29,12 @@ public class ReactNativeSubjectMaskModule: Module {
         throw UnsupportedException()
       }
 
+      let resolvedOptions = options ?? SubjectLiftOptions()
       let output = try SubjectMasking.isolateSubject(
         imageUrl: imageUri,
-        maxMaskDimension: CGFloat(options?.maxMaskDimension ?? 2048)
+        maxMaskDimension: CGFloat(resolvedOptions.maxMaskDimension),
+        maxImageDimension: CGFloat(resolvedOptions.maxImageDimension),
+        imageQuality: CGFloat(min(max(resolvedOptions.imageQuality, 0), 1))
       )
 
       return [
