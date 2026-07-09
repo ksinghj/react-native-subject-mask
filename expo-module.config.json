@@ -1,0 +1,9 @@
+{
+  "platforms": ["apple", "android", "web"],
+  "apple": {
+    "modules": ["ReactNativeSubjectMaskModule"]
+  },
+  "android": {
+    "modules": ["expo.modules.subjectmask.ReactNativeSubjectMaskModule"]
+  }
+}
