@@ -35,6 +35,9 @@ jobs:
       - run: npm ci
       - run: npm ci
         working-directory: example
+      - name: Prebuild iOS project
+        working-directory: example
+        run: npx expo prebuild --platform ios --no-install
       - run: npx pod-install
         working-directory: example
       - name: Build example app (simulator)
