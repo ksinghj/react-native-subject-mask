@@ -27,9 +27,9 @@ export function useSubjectLift(
   imageUri: string | null | undefined,
   options?: SubjectLiftOptions
 ): UseSubjectLiftState {
-  const { maxMaskDimension, maxImageDimension, imageQuality } = options ?? {};
+  const { maxMaskDimension, maxImageDimension, imageQuality, includeSubjectImage } = options ?? {};
   const key = imageUri
-    ? [imageUri, maxMaskDimension, maxImageDimension, imageQuality].join('|')
+    ? [imageUri, maxMaskDimension, maxImageDimension, imageQuality, includeSubjectImage].join('|')
     : null;
 
   const [state, setState] = useState<InternalState>({
@@ -57,6 +57,7 @@ export function useSubjectLift(
       maxMaskDimension,
       maxImageDimension,
       imageQuality,
+      includeSubjectImage,
     })
       .then((result) => {
         if (!cancelled) {
@@ -77,7 +78,7 @@ export function useSubjectLift(
     return () => {
       cancelled = true;
     };
-  }, [imageUri, key, maxMaskDimension, maxImageDimension, imageQuality]);
+  }, [imageUri, key, maxMaskDimension, maxImageDimension, imageQuality, includeSubjectImage]);
 
   return {
     result: state.result,

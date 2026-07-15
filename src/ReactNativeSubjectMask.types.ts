@@ -13,6 +13,11 @@ export type SubjectLiftOptions = {
   maxImageDimension?: number;
   /** JPEG quality of the output image, 0–1. Default: 0.9. */
   imageQuality?: number;
+  /**
+   * Also produce the subject cutout PNG (`subjectUri`). Default: false —
+   * encoding a full-resolution alpha PNG is comparatively expensive.
+   */
+  includeSubjectImage?: boolean;
 };
 
 export type SubjectLiftResult = {
@@ -23,6 +28,11 @@ export type SubjectLiftResult = {
    * use it to mask a dark scrim so the subject stays undimmed.
    */
   dimMaskUri: string;
+  /**
+   * Subject-only PNG with a transparent background (file:// URI), the same
+   * pixel size as `imageUri`. Present only when `includeSubjectImage` was set.
+   */
+  subjectUri?: string;
   /**
    * Subject outline as an SVG path string, normalized to 0..1 with a
    * top-left origin (feed to `Skia.Path.MakeFromSVGString` and scale into

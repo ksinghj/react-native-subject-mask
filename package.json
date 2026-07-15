@@ -1,6 +1,6 @@
 {
   "name": "react-native-subject-mask",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "description": "Apple Vision subject lifting for React Native/Expo — returns an orientation-normalized image, a dim-mask PNG, and the subject outline as an SVG path for JS-driven animation",
   "main": "build/index.js",
   "types": "build/index.d.ts",

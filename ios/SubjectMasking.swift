@@ -10,6 +10,7 @@ internal enum SubjectMasking {
   internal struct Output {
     let imageUri: String
     let dimMaskUri: String
+    let subjectUri: String?
     let outlineSvg: String?
     let imageWidth: Int
     let imageHeight: Int
@@ -21,7 +22,8 @@ internal enum SubjectMasking {
     imageUrl: URL,
     maxMaskDimension: CGFloat,
     maxImageDimension: CGFloat,
-    imageQuality: CGFloat
+    imageQuality: CGFloat,
+    includeSubjectImage: Bool
   ) throws -> Output {
     guard let data = try? Data(contentsOf: imageUrl), let image = UIImage(data: data) else {
       throw ImageLoadException()
@@ -68,9 +70,20 @@ internal enum SubjectMasking {
       throw MaskRenderException()
     }
 
+    var subjectUri: String?
+    if includeSubjectImage {
+      let subjectPngData = try makeSubjectCutout(
+        source: cgImage,
+        subjectMaskCIImage: rawMaskCIImage,
+        maxDimension: maxImageDimension
+      )
+      subjectUri = try writeToTemp(data: subjectPngData, fileExtension: "png")
+    }
+
     return Output(
       imageUri: try writeToTemp(data: jpegData, fileExtension: "jpg"),
       dimMaskUri: try writeToTemp(data: pngData, fileExtension: "png"),
+      subjectUri: subjectUri,
       outlineSvg: outlinePath?.svgPathString(),
       imageWidth: outputCGImage.width,
       imageHeight: outputCGImage.height
@@ -98,6 +111,31 @@ internal enum SubjectMasking {
       throw MaskRenderException()
     }
     return cgImage
+  }
+
+  /// Cuts the subject out of the source image as PNG data with a transparent
+  /// background. Scaled with the same `scaledDown` helper as the output image
+  /// so its pixel size matches `imageWidth`/`imageHeight` exactly.
+  private static func makeSubjectCutout(
+    source: CGImage,
+    subjectMaskCIImage: CIImage,
+    maxDimension: CGFloat
+  ) throws -> Data {
+    let sourceCI = CIImage(cgImage: source)
+    let cutout = sourceCI.applyingFilter("CIBlendWithMask", parameters: [
+      kCIInputBackgroundImageKey: CIImage(color: .clear).cropped(to: sourceCI.extent),
+      kCIInputMaskImageKey: subjectMaskCIImage,
+    ])
+
+    guard let cutoutCGImage = ciContext.createCGImage(cutout, from: cutout.extent) else {
+      throw MaskRenderException()
+    }
+    guard let pngData = UIImage(cgImage: cutoutCGImage)
+      .scaledDown(toLongestSide: maxDimension)
+      .pngData() else {
+      throw MaskRenderException()
+    }
+    return pngData
   }
 
   /// Traces the outlines of the (bright) subject blobs in the mask as a

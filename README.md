@@ -37,6 +37,8 @@ returns data, not a baked-in effect:
 - **`outlineSvg`** — the subject's outline as an SVG path string, normalized
   to 0...1 with a top-left origin, ready for `Skia.Path.MakeFromSVGString`
   (multiple subpaths preserved — islands and holes survive)
+- **`subjectUri`** *(opt-in)* — the subject cutout as a transparent PNG, the
+  same pixel size as `imageUri`; pass `includeSubjectImage: true` to get it
 
 All animation stays in JS, where it's fast to iterate — and the data opens up
 more than dimming: e.g. render a previous photo's outline over a live camera
@@ -112,11 +114,16 @@ type SubjectLiftOptions = {
   maxImageDimension?: number;
   /** JPEG quality of the output image, 0–1. Default 0.9. */
   imageQuality?: number;
+  /** Also produce the subject cutout PNG (`subjectUri`). Default false. */
+  includeSubjectImage?: boolean;
 };
 
 type SubjectLiftResult = {
   imageUri: string;          // orientation-normalized copy (file://)
   dimMaskUri: string;        // PNG, alpha 1 = background, 0 = subject (file://)
+  subjectUri?: string;       // subject cutout PNG, transparent background,
+                             // same pixel size as imageUri; only present when
+                             // includeSubjectImage was set (file://)
   outlineSvg: string | null; // SVG path, normalized 0..1, top-left origin
   imageWidth: number;
   imageHeight: number;
@@ -156,7 +163,8 @@ or ignore them without touching native code.
 The similarly named
 [react-native-subject-lift](https://github.com/baygut/react-native-subject-lift)
 returns a subject *cutout*; this module returns the dim mask + vector outline
-for building animations.
+for building animations (plus the cutout, if you opt in with
+`includeSubjectImage`).
 
 ## Example app
 
