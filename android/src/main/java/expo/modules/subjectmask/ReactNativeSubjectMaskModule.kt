@@ -17,6 +17,7 @@ class ReactNativeSubjectMaskModule : Module() {
 
     AsyncFunction("isolateSubject") { _: String, _: Map<String, Any?>? ->
       throw UnsupportedException()
+      @Suppress("UNREACHABLE_CODE") Unit
     }
   }
 }
